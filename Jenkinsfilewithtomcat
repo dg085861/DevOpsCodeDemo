@@ -1,0 +1,73 @@
+pipeline {
+    agent { label 'jenkins_agent' }  // Run pipeline on the Jenkins Agent
+
+    tools {
+        maven 'mymaven'  // Use the configured Maven tool
+    }
+
+    environment {
+        TOMCAT_HOME = "/opt/tomcat/apache-tomcat-9.0.102"
+        WAR_NAME = "webapp.war"  // Name of the generated WAR file
+    }
+
+    stages {
+        
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/Sonal0409/DevOpsCodeDemo.git'
+            }
+        }
+        
+        stage('Compile Code') {
+            steps {
+                echo "Compiling the code..."
+                sh 'mvn compile'
+            }
+        }
+        
+        stage('Test Code') {
+            steps {
+                echo "Running unit tests..."
+                sh 'mvn test'
+            }
+        }
+        
+        stage('Build Artifact') {
+            steps {
+                echo "Building the project..."
+                sh 'mvn package'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                echo "Deploying to Tomcat Server..."
+                
+                // Stop Tomcat before deployment
+                sh '''
+                echo "Stopping Tomcat Server..."
+                $TOMCAT_HOME/bin/shutdown.sh
+                sleep 5
+                '''
+
+                // Remove old WAR and extracted folder
+                sh '''
+                echo "Removing old deployment..."
+                rm -rf $TOMCAT_HOME/webapps/$WAR_NAME $TOMCAT_HOME/webapps/webapp
+                '''
+
+                // Copy new WAR file to Tomcat webapps
+                sh '''
+                echo "Deploying new WAR..."
+                cp target/*.war $TOMCAT_HOME/webapps/$WAR_NAME
+                '''
+
+                // Start Tomcat after deployment
+                sh '''
+                echo "Starting Tomcat Server..."
+                $TOMCAT_HOME/bin/startup.sh
+                '''
+            }
+        }
+    }
+}
