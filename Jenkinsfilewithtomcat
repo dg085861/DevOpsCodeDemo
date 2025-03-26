@@ -50,7 +50,7 @@ pipeline {
                 sleep 5
                 '''
 
-                // Remove old WAR and extracted folder
+                // Remove old WAR and extracted fol
                 sh '''
                 echo "Removing old deployment..."
                 rm -rf $TOMCAT_HOME/webapps/$WAR_NAME $TOMCAT_HOME/webapps/webapp
